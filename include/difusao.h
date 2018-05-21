@@ -120,6 +120,14 @@ void invTri(Matrix* res, Matrix* A){
 		// Na inversa
 		mtrxPaste(res, &rowInv[1], p);
 	}
+	// Limpeza
+	mtrxDiscard(&M);
+	mtrxDiscard(&row[0]);
+	mtrxDiscard(&row[1]);
+	mtrxDiscard(&row[2]);
+	mtrxDiscard(&rowInv[0]);
+	mtrxDiscard(&rowInv[1]);
+	mtrxDiscard(&rowInv[2]);
 }
 
 // Gerar amostras
@@ -134,7 +142,7 @@ void invTri(Matrix* res, Matrix* A){
  * Valor da derivada em relação a x no extremo b definido pelo último valor do vetor 
  */
 // t: Estado depois de t segundos
-void gerar(Matrix *w, float alfa, float a, float b, int t){
+void gerar(Matrix *w, float alfa, float a, float b, float t){
 
 	// Total de pontos entre a e b (inclusivo).
 	// Último valor do vetor corresponde à derivada da
@@ -198,6 +206,7 @@ void gerar(Matrix *w, float alfa, float a, float b, int t){
 		ts += k;
 	}
 	mtrxDiscard(&buf);
+	mtrxDiscard(&C);
 	// Vetor resultante na saída padrão
 	//for (int i = 0; i < m; i++) fprintf(stdout, "%.25f\n", w[0]._[i]);
 }
