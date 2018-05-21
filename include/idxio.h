@@ -77,6 +77,51 @@ void idxLoad(const char* filename, struct Idx *idx){
 	fclose(fp);
 }
 
+void idxSaveHeader(const char* filename, struct Idx *idx){
+	// Buffer da palavra
+	int *w = malloc(WSIZE);
+	*w = idx->type << 8;
+	*w |= idx->dimCount;
+	// Ponteiro do arquivo
+	FILE *fp;
+	fp = fopen(filename, "w");
+	// Escrever Magic number e contagem de dimensões
+	fwrite(w, WSIZE, 1, fp);
+	// Liberar buffer
+	free(w);
+	// Tamanho de cada dimensão
+	fwrite(idx->dimSizes, WSIZE, idx->dimCount, fp);
+	// Fechar ponteiro do arquivo
+	fclose(fp);
+}
+
+void idxSaveData(const char* filename, struct Idx *idx){
+	// Ponteiro do arquivo
+	FILE *fp;
+	fp = fopen(filename, "w");
+	// Escrever dados
+	switch ( idx->type ){
+		case 0x08:
+			// unsigned char
+			fwrite(idx->data.c, idx->size, 1, fp);
+		break;
+		case 0x0c:
+			// integer
+			fwrite(idx->data.i, idx->size * sizeof(int), 1, fp);
+		break;
+		case 0x0d:
+			// float
+			fwrite(idx->data.f, idx->size * sizeof(float), 1, fp);
+		break;
+		case 0x0e:
+			// double
+			fwrite(idx->data.d, idx->size * sizeof(double), 1, fp);
+		break;
+	}
+	// Fechar ponteiro do arquivo
+	fclose(fp);
+}
+
 void idxSave(const char* filename, struct Idx *idx){
 	// Buffer da palavra
 	int *w = malloc(WSIZE);
