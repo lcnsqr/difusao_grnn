@@ -35,7 +35,7 @@ int estim(float *mem_x, float *mem_y, int m, float *x, float *y, int n, float si
 	// Fator comum nas operações
 	float f;
 	// Iterar para cada componente de y
-	for (int c = 0; c < n; c++){
+	//for (int c = 0; c < n; c++){
 		numer = 0;
 		denom = 0;
 		// Iterar em cada amostra de treinamento
@@ -44,21 +44,23 @@ int estim(float *mem_x, float *mem_y, int m, float *x, float *y, int n, float si
 		 */
 		for (int i = 0; i < m; i++){
 			// Fator comum
-			f = exp( -dist(x, &mem_x[i*n], n) / 2*pow(sigma,2) );
+			f = exp( -dist(x, &mem_x[i*n], n) / (2*pow(sigma,2)) );
 			// Numerador da fração para o c-ésimo componente
-			numer += mem_y[i*n+c] * f;
+			//numer += mem_y[i*n+c] * f;
+			numer += mem_y[i] * f;
 			// Denominador da fração
 			denom += f;
 		}
 		// Estimativa com verificação de divisão por zero
 		if ( denom != 0 ){
-			y[c] = numer / denom;
+			//y[c] = numer / denom;
+			*y = numer / denom;
 		}
 		else {
 			// Falha na operação
 			return -1;
 		}
-	}
+	//}
 	// Sem erro
 	return 0;
 }
@@ -72,18 +74,22 @@ int testar(struct Idx *train_x, struct Idx *train_y, struct Idx *test_x, struct 
 	float err = 0;
 	// Iterar em todo o conjunto de teste
 	for (int i = 0; i < test_x->dimSizes[0]; i++){
-		printf("Teste %d:\nInicial  \tEstimativa  \tObservado\n", i);
+		printf("Teste %d\n", i);
 		ret = estim(train_x->data.f, train_y->data.f, train_x->dimSizes[0], &test_x->data.f[i*test_x->dimSizes[1]], y, train_x->dimSizes[1], sigma);
 		if ( ret == -1 ){
 			printf("Falha na operação\n");
 			return ret;
 		}
-		for (int c = 0; c < test_y->dimSizes[1]; c++){
-			printf("%.6f\t%.6f\t%.6f\n", test_x->data.f[i*test_x->dimSizes[1] + c], y[c], test_y->data.f[i*test_y->dimSizes[1] + c]);
+		// Exibir valores da condição inicial
+		printf("Condição inicial\n");
+		for (int c = 0; c < test_x->dimSizes[1]; c++){
+			printf("%.6f\n", test_x->data.f[i*test_x->dimSizes[1] + c]);
 		}
+		// Exibir estimativa e valor observado
+		printf("Valor Observado: %.6f\nEstimativa: %.6f\n", *y, test_y->data.f[i]);
 		// Erro da estimativa
-		err = dist(y, &test_y->data.f[i*test_y->dimSizes[1]], test_y->dimSizes[1]);
-		printf("Norma euclidiana da diferença: %f\n", sqrt(err));
+		err = fabs(*y - test_y->data.f[i]);
+		printf("Diferença: %f\n", err);
 		printf("\n");
 		// Erro acumulado (sem raiz)
 		*errsum += err;
@@ -116,14 +122,16 @@ int main(int argc, char **argv){
 	// Testar
 	printf("Calculando estimativas para o conjunto teste (%d amostras)...\n\n", test_x.dimSizes[0]);
 
-	// Candidato a melhor parâmetro sigma
-	sigma = M_E/log(train_x.dimSizes[0]);
+	// Candidato a melhor parâmetro sigma (variância)
+	//sigma = M_E/log(train_x.dimSizes[0]);
+	sigma = 1.0/log(train_x.dimSizes[0]);
 	errsum = 0;
 	ret = 0;
-	printf("Parâmetro sigma = e/log(n): %f\n", sigma);
+	printf("Parâmetro sigma = 1/log(n): %f\n", sigma);
 	ret = testar(&train_x, &train_y, &test_x, &test_y, sigma, &errsum);
 	if ( ret == 0 ){
-		printf("Root Mean Square Error (RMSE): %f\n\n", sqrt(errsum / test_x.dimSizes[0]));
+		//printf("Root Mean Square Error (RMSE): %f\n\n", sqrt(errsum / test_x.dimSizes[0]));
+		printf("Erro médio: %f\n\n", errsum / test_x.dimSizes[0]);
 	}
 	else {
 		printf("Erro na operação\n");
